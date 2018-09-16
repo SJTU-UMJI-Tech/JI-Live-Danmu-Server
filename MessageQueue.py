@@ -1,5 +1,9 @@
 from flask import Flask, request
 from queue import Queue
+import argparse
+import sys
+import random
+import string
 
 SECRET_KEY = 'YourSecretKey'
 
@@ -57,4 +61,13 @@ def qsize():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port='5000')
+    parser = argparse.ArgumentParser(description='JI Live Danmu Server.')
+    parser.add_argument('-ip', default='0.0.0.0', type=str)
+    parser.add_argument('-port', default='5000', type=str)
+    parser.add_argument('-sk', default='YourSecretKey', type=str)
+    args = vars(parser.parse_args())
+    SECRET_KEY = args['sk']
+    if SECRET_KEY == 'YourSecretKey':
+        SECRET_KEY = ''.join(random.sample(string.ascii_letters + string.digits, 8))
+    print('Your Secret Key: '+SECRET_KEY)
+    app.run(host=args['ip'], port=args['port'])
