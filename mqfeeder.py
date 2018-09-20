@@ -2,21 +2,26 @@
 
 from urllib.request import urlopen
 from urllib.parse import urlencode
+import re
+TALK_FLAG = True
 
-HELP_CONTENT = 'To send normal white Danmu by just send your words.\n' + \
-               'Add "#FF0000" or other RGBs to send Danmu in red or other colors.\n' + \
-               'Add "#top" or "#btm" to send Danmu at the top or bottom.\n' + \
-               'The max length of your words is 30.\n' + \
-               'e.g "#top #00FF00 Life is short,use Python."'
 
 # qqbot onMessage event
 def onQQMessage(bot, contact, member, content):
     # reply help content
-    if '#help' in content:
-        bot.SendTo(contact, HELP_CONTENT)
+    if re.search(r"#system ", content, re.I):
+        if re.search(r"start", content):
+            TALK_FLAG = True
+        elif re.search(r"stop", content):
+            TALK_FLAG = False
     # send message to queue
-    elif not bot.isMe(contact, member):
-        try:
-            urlopen('http://127.0.0.1:5000/push?' + urlencode({'message': content}), timeout = 1)
-        except KeyError as e:
-            print(e)
+    if TALK_FLAG and not bot.isMe(contact, member):
+            try:
+                urlopen(
+                    'http://127.0.0.1:5000/push?' + urlencode({
+                        'message':
+                        content
+                    }),
+                    timeout=1)
+            except KeyError as e:
+                print(e)
