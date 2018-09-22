@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from qqbot.utf8logger import INFO, ERROR
 from urllib.request import urlopen
 from urllib.parse import urlencode
 from queue import Queue
@@ -20,46 +20,50 @@ def waitForConnect():
     while True:
         try:
             sock, addr = MY_SOCKET.accept()
-            connStream = ssl.wrap_socket(
-                sock,
-                "key.pem",
-                "cert.pem",
-                server_side=True,
-                ssl_version=ssl.PROTOCOL_TLSv1)
-            t = td.Thread(target=tcplink, args=(connStream, addr))
-            t.start()
+            if (MSG_Queue_Dict.get(addr) is None):
+                connStream = ssl.wrap_socket(
+                    sock,
+                    "key.pem",
+                    "cert.pem",
+                    server_side=True,
+                    ssl_version=ssl.PROTOCOL_TLSv1)
+                t = td.Thread(target=tcplink, args=(connStream, addr))
+                t.start()
+            else:
+                pass
         except:
-            print("Unexpected error:", str(sys.exc_info()))
+            ERROR("Unexpected error in waitForConnect:" + str(sys.exc_info()))
         time.sleep(0.1)
 
 
 def tcplink(connStream, addr):
     global MSG_Queue_Dict
-    print('Accept new connection from %s:%s...' % addr)
-    if (MSG_Queue_Dict.get(addr) is None):
-        MSG_Queue_Dict[addr] = Queue()
-        while True:
-            if not MSG_Queue_Dict[addr].empty():
-                try:
-                    myByte = bytes(
-                        MSG_Queue_Dict[addr].get().replace('\0', '') + '\0',
-                        encoding="utf8")
-                    connStream.send(myByte)
-                except:
-                    print("Unexpected error:", str(sys.exc_info()))
-                    break
-            else:
-                time.sleep(0.1)
-    MSG_Queue_Dict.pop()[addr]
+    INFO('Accept new connection from %s:%s...' % addr)
+    MSG_Queue_Dict[addr] = Queue()
+    while True:
+        if not MSG_Queue_Dict[addr].empty():
+            try:
+                myByte = bytes(
+                    MSG_Queue_Dict[addr].get().replace('\0', '') + '\0',
+                    encoding="utf8")
+                connStream.send(myByte)
+            except ConnectionResetError:
+                INFO("Connection reset...")
+                break
+            except:
+                ERROR("Unexpected error:" + str(sys.exc_info()))
+                break
+        else:
+            time.sleep(0.1)
+    MSG_Queue_Dict.pop(addr)
     connStream.shutdown(socket.SHUT_RDWR)
     connStream.close()
+    INFO('Close connection with %s:%s...' % addr)
 
 
 def onPlug(bot):
     global MY_SOCKET
-    print("init socket")
-    print(os.path.abspath('.'))
-    print('path end')
+    INFO("init socket")
     MY_SOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     MY_SOCKET.bind(('0.0.0.0', 6000))
     MY_SOCKET.listen(5)
@@ -79,5 +83,5 @@ def onQQMessage(bot, contact, member, content):
         try:
             for queue in MSG_Queue_Dict.values():
                 queue.put(content)
-        except KeyError as e:
-            print(e)
+        except:
+            ERROR("Unexpected error in onQQMessage:" + str(sys.exc_info()))
