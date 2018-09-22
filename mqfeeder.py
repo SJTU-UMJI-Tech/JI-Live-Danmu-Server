@@ -55,6 +55,7 @@ def tcplink(connStream, addr):
     connStream.close()
 
 
+<<<<<<< HEAD
 def onPlug(bot):
     global MY_SOCKET
     print("init socket")
@@ -64,6 +65,15 @@ def onPlug(bot):
     MY_SOCKET.bind(('0.0.0.0', 6000))
     MY_SOCKET.listen(5)
     td.Thread(target=waitForConnect, daemon=True).start()
+=======
+# def onPlug(bot):
+    # global MY_SOCKET
+print("init socket")
+MY_SOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+MY_SOCKET.bind(('0.0.0.0', 6000))
+MY_SOCKET.listen(5)
+td.Thread(target=waitForConnect, daemon=True).start()
+>>>>>>> 6d106d3062984a07f41f3c8deeee52854716e1b7
 
 
 # qqbot onMessage event
