@@ -8,14 +8,13 @@ MAINTAINER 1328410180@qq.com
 WORKDIR /root
 
 # running required command
-RUN pip install qqbot flask pillow wcwidth
+RUN pip install qqbot
 
 # put files
-ADD MessageQueue.py /root/MessageQueue.py
 ADD mqfeeder.py /root/.qqbot-tmp/plugins/mqfeeder.py
 
-EXPOSE 5000
+EXPOSE 6000
 EXPOSE 5001
 
 # Start the server
-CMD qqbot -pl mqfeeder -ip 0.0.0.0 -hp 5001 -dm; python MessageQueue.py
+CMD qqbot -pl mqfeeder -ip 0.0.0.0 -hp 5001
