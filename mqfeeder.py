@@ -8,6 +8,8 @@ import threading as td
 import sys
 import time
 import socket
+import ssl
+import os
 TALK_FLAG = True
 MY_SOCKET = None
 MSG_Queue_Dict = {}
@@ -16,34 +18,48 @@ MSG_Queue_Dict = {}
 def waitForConnect():
     global MY_SOCKET
     while True:
-        sock, addr = MY_SOCKET.accept()
-        t = td.Thread(target=tcplink, args=(sock, addr))
-        t.start()
+        try:
+            sock, addr = MY_SOCKET.accept()
+            connStream = ssl.wrap_socket(
+                sock,
+                "key.pem",
+                "cert.pem",
+                server_side=True,
+                ssl_version=ssl.PROTOCOL_TLSv1)
+            t = td.Thread(target=tcplink, args=(connStream, addr))
+            t.start()
+        except:
+            print("Unexpected error:", str(sys.exc_info()))
         time.sleep(0.1)
 
 
-def tcplink(sock, addr):
+def tcplink(connStream, addr):
+    global MSG_Queue_Dict
     print('Accept new connection from %s:%s...' % addr)
     if (MSG_Queue_Dict.get(addr) is None):
         MSG_Queue_Dict[addr] = Queue()
         while True:
             if not MSG_Queue_Dict[addr].empty():
                 try:
-                    sock.send(
-                        bytes(MSG_Queue_Dict[addr].get(), encoding="utf8"))
+                    myByte = bytes(
+                        MSG_Queue_Dict[addr].get().replace('\0', '') + '\0',
+                        encoding="utf8")
+                    connStream.send(myByte)
                 except:
                     print("Unexpected error:", str(sys.exc_info()))
                     break
             else:
                 time.sleep(0.1)
     MSG_Queue_Dict.pop()[addr]
-    sock.shutdown(2)
-    sock.close()
+    connStream.shutdown(socket.SHUT_RDWR)
+    connStream.close()
 
 
 def onPlug(bot):
     global MY_SOCKET
     print("init socket")
+    print(os.path.abspath('.'))
+    print('path end')
     MY_SOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     MY_SOCKET.bind(('0.0.0.0', 6000))
     MY_SOCKET.listen(5)
@@ -52,7 +68,7 @@ def onPlug(bot):
 
 # qqbot onMessage event
 def onQQMessage(bot, contact, member, content):
-    global TALK_FLAG
+    global TALK_FLAG, MSG_Queue_Dict
     if re.search(r"#system ", content, re.I):
         if re.search(r"start", content):
             TALK_FLAG = True
