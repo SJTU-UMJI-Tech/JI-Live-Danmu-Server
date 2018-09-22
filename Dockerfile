@@ -1,9 +1,6 @@
 # base image
 FROM python:3.6
 
-# MAINTAINER
-MAINTAINER 1328410180@qq.com
-
 # change dir to /root
 WORKDIR /root
 
@@ -12,6 +9,8 @@ RUN pip install qqbot
 
 # put files
 ADD mqfeeder.py /root/.qqbot-tmp/plugins/mqfeeder.py
+ADD cert.pem /root/cert.pem
+ADD key.pem /root/key.pem
 
 EXPOSE 6000
 EXPOSE 5001

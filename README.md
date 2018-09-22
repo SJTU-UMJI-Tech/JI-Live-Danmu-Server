@@ -2,15 +2,11 @@
 
 ## Usage:
 
-1. Set server port and secret key in MessageQueue.py
+1. Generate ssl cert
 ```bash
-vim MessageQueue.py
+openssl req -new -x509 -days 365 -nodes -out cert.pem -keyout key.pem
 ```
-2. Run Live Danmu mq server
-```bash
-python MessageQueue.py
-```
-3. Set up qqbot
+2. Set up qqbot
 ```bash
 cp mqfeeder.py ~/.qqbot-tmp/plugins
 qqbot -pl mqfeeder
