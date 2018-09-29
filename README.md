@@ -25,6 +25,4 @@ docker run -it -p 6000:6000 -p 5001:5001 --name dmserver dmserver
 
 QR code is on 0.0.0.0:5001
 
-MQ is on 0.0.0.0:5000
-
-Server will start with a random secretKey.
+MQ is on 0.0.0.0:6000
