@@ -65,7 +65,7 @@ def verify(word):
     ret = ''
     api_url = 'https://aip.baidubce.com/rest/2.0/antispam/v2/spam'
     paramas = {
-        'access_token': 'YourAccessToken',
+        'access_token': '',
         'content':  word
     }
     paramas = urlencode(paramas).encode('utf-8')
@@ -110,10 +110,15 @@ def onQQMessage(bot, contact, member, content):
                 TALK_FLAG = False
         # send message to queue
         if TALK_FLAG and content and not bot.isMe(contact, member):
-            verify_result = verify(content)
-            if verify_result:
-                bot.SendTo(contact, verify_result[:-1])
-            else:
+            try:
+                verify_result = verify(content)
+                if verify_result:
+                    bot.SendTo(contact, verify_result[:-1])
+                else:
+                    for queue in MSG_Queue_Dict.values():
+                        queue.put(content)
+            except:
+                print('verify error')
                 for queue in MSG_Queue_Dict.values():
                     queue.put(content)
     except:
