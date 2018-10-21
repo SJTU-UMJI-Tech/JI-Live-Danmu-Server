@@ -108,6 +108,9 @@ def onQQMessage(bot, contact, member, content):
     global GIFT_COUNTDOWN
     try:
         global TALK_FLAG, MSG_Queue_Dict
+        if re.search(r'\[.+\]请使用.+进行查看', content):
+            return
+        content = re.sub(r'\[@ME\]', '', content)
         if re.search(r"#system ", content, re.I):
             if re.search(r"danmu on", content):
                 TALK_FLAG = True
